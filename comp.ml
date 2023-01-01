@@ -24,39 +24,43 @@ let dir_contents dir =
 exception Error of string;;
 let error s = raise (Error s);;
 
-let parse_program error_prefix parseur lexer lexbuf =
-  let orig = lexbuf.Lexing.lex_abs_pos + lexbuf.Lexing.lex_curr_pos in
-  let orig = if orig > 0 then orig+1 else orig in
+let parse_program pars lexer lexbuf =
   try
-    let program = parseur lexer lexbuf in Parsing.clear_parser(); program
+    let program = pars lexer lexbuf in Parsing.clear_parser(); program
   with Parsing.Parse_error ->
-         let pos1 = Lexing.lexeme_start lexbuf - orig in
-         let pos2 = Lexing.lexeme_end lexbuf - orig in
+         let ln = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
+         let cpos = lexbuf.Lexing.lex_curr_p.Lexing.pos_cnum - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol in
            if Lexing.lexeme lexbuf <> "." then
            while lexer lexbuf <> Parser.PERIOD do () done;
            error
            (String.concat ""
-              [ error_prefix; string_of_int pos1; "-"; string_of_int pos2;
-                ": Syntax error\n";])
+              ["Syntax error on line "; string_of_int ln; ": "; string_of_int cpos; "\n"])
     | Lexer.LexError ->
-         let pos1 = Lexing.lexeme_start lexbuf - orig in
-         let pos2 = Lexing.lexeme_end lexbuf - orig in
+         let ln = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum in
+         let cpos = lexbuf.Lexing.lex_curr_p.Lexing.pos_cnum - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol in
            error
            (String.concat ""
-              [ error_prefix; string_of_int pos1; "-"; string_of_int pos2;
-                ": Lexical error\n"; Lexing.lexeme lexbuf])
+              ["Lexical error on line "; string_of_int ln; " : "; Lexing.lexeme lexbuf; ": "; string_of_int cpos; "\n"])
 
+let set_file_name lexbuf f =
+    let pos = lexbuf.Lexing.lex_curr_p in
+    lexbuf.Lexing.lex_curr_p <- { pos with
+        Lexing.pos_fname = f;
+    }
 
 let test f =
     let ic = open_in f in
     let lexbuf = Lexing.from_channel ic in
-    let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert ((Ast.check_scope p) && (Ast.check_types p))
+    set_file_name lexbuf f;
+    let p = parse_program Parser.program Lexer.token lexbuf in if ((Ast.check_scope p) && (Ast.check_types p)) then Printf.printf "--------- OK"
+    else assert false
 
 let test_false f =
     let ic = open_in f in
     let lexbuf = Lexing.from_channel ic in
+    set_file_name lexbuf f;
     try
-        let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert (not ((Ast.check_scope p) && (Ast.check_types p)))
+        let p = parse_program Parser.program Lexer.token lexbuf in assert (not ((Ast.check_scope p) && (Ast.check_types p)))
     with Error s -> Printf.printf "%s" s
 
 (*
@@ -66,5 +70,6 @@ let _ =
     let lexbuf = Lexing.from_channel ic in
     let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in Ast.print p
 *)
-let _ = List.iter (fun f -> Printf.printf "%s\n" f; test f) (dir_contents "tests/OK")
-let _ = List.iter (fun f -> Printf.printf "%s\n" f; test_false f) (dir_contents "tests/KO")
+let _ = List.iter (fun f -> Printf.printf "%s: " f; test f; Printf.printf "\n") (dir_contents "tests/OK")
+let _ = Printf.printf "\n\n"
+let _ = List.iter (fun f -> Printf.printf "%s: " f; test_false f; Printf.printf "\n") (dir_contents "tests/KO")

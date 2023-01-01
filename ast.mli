@@ -19,14 +19,14 @@ and definition = {
   }
 
 and expression =
-  | Int of int
-  | Bool of bool
-  | Bin of binaryOp * expression * expression
-  | Var of string
-  | FunctionCall of string * expression list
-  | GetArr of expression * expression
-  | NewArr of varType * expression
-  | UMinus of expression
+  | Int of int * Lexing.position
+  | Bool of bool * Lexing.position
+  | Bin of binaryOp * expression * expression * Lexing.position
+  | Var of string * Lexing.position
+  | FunctionCall of string * expression list * Lexing.position
+  | GetArr of expression * expression * Lexing.position
+  | NewArr of varType * expression * Lexing.position
+  | UMinus of expression * Lexing.position
   | Readln
 
 and binaryOp =
@@ -42,20 +42,20 @@ and binaryOp =
   | Diff
 
 and condition =
-    | Expr of expression
-    | Not of condition
-    | And of condition * condition
-    | Or of condition * condition
+    | Expr of expression  * Lexing.position
+    | Not of condition * Lexing.position
+    | And of condition * condition * Lexing.position
+    | Or of condition * condition * Lexing.position
 
 and instruction =
-  | SetVar of string * expression
-  | Sequence of instruction list
-  | If of condition * instruction * instruction
-  | While of condition * instruction
-  | ProcCall of string * expression list
-  | Write of expression list
-  | Writeln of expression list
-  | SetArr of expression * expression * expression
+  | SetVar of string * expression * Lexing.position
+  | Sequence of instruction list * Lexing.position
+  | If of condition * instruction * instruction * Lexing.position
+  | While of condition * instruction * Lexing.position
+  | ProcCall of string * expression list * Lexing.position
+  | Write of expression list * Lexing.position
+  | Writeln of expression list * Lexing.position
+  | SetArr of expression * expression * expression * Lexing.position
 
 
 val print: program -> unit

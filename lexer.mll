@@ -55,7 +55,8 @@ let id = ['A'-'Z' 'a'-'z'] ['A'-'Z' 'a'-'z' '0'-'9' '_']*
 let number = ['0'-'9']+
 
 rule token = parse
-        [' ' '\t' '\n']     { token lexbuf } (*skip*)
+        [' ' '\t']     { token lexbuf } (*skip*)
+    | '\n'          {Lexing.new_line lexbuf; token lexbuf}
     | comment               { token lexbuf } (*skip*)
     | id             { id_or_keyword (Lexing.lexeme lexbuf) }
     | number         { INT(int_of_string (Lexing.lexeme lexbuf)) }

@@ -36,43 +36,43 @@ program:
 ;
 
 instruction:
-      ID LPAREN arguments RPAREN         { ProcCall ($1, $3) }
-    | ID COLONEQUAL expression           { SetVar ($1, $3) }
+      ID LPAREN arguments RPAREN         { ProcCall ($1, $3, Parsing.symbol_start_pos ()) }
+    | ID COLONEQUAL expression           { SetVar ($1, $3, Parsing.symbol_start_pos ()) }
     | expression LBRACKET expression RBRACKET COLONEQUAL expression
-                                            { SetArr ($1, $3, $6) }
+                                            { SetArr ($1, $3, $6, Parsing.symbol_start_pos ()) }
     | IF condition THEN instruction ELSE instruction
-                                            { If ($2, $4, $6) }
-    | WHILE condition DO instruction        { While ($2, $4) }
-    | BEGIN bloc END                        { Sequence $2 }
+                                            { If ($2, $4, $6, Parsing.symbol_start_pos ()) }
+    | WHILE condition DO instruction        { While ($2, $4, Parsing.symbol_start_pos ()) }
+    | BEGIN bloc END                        { Sequence ($2, Parsing.symbol_start_pos ()) }
     | REPEAT bloc UNTIL condition
-                                            { Sequence [Sequence $2; While($4,Sequence $2)] }
-    | WRITE LPAREN arguments RPAREN         { Write ($3) }
-    | WRITELN LPAREN arguments RPAREN       { Writeln ($3) }
+                                            { Sequence ([Sequence ($2, Parsing.symbol_start_pos ()); While($4,Sequence ($2, Parsing.symbol_start_pos ()), Parsing.symbol_start_pos ())], Parsing.symbol_start_pos ()) }
+    | WRITE LPAREN arguments RPAREN         { Write ($3, Parsing.symbol_start_pos ()) }
+    | WRITELN LPAREN arguments RPAREN       { Writeln ($3, Parsing.symbol_start_pos ()) }
 ;
 
 expression:
       LPAREN expression RPAREN              { $2 }
-    | INT                                   { Int $1 }
-    | BOOL                                  { Bool $1 }
-    | ID                                    { Var $1 }
-    | MINUS expression %prec UMINUS         { UMinus ($2) }
-    | expression PLUS expression            { Bin (Plus, $1, $3) }
-    | expression MINUS expression           { Bin (Minus, $1, $3) }
-    | expression TIMES expression           { Bin (Times, $1, $3) }
-    | expression DIV expression             { Bin (Div, $1, $3) }
+    | INT                                   { Int ($1, Parsing.symbol_start_pos ()) }
+    | BOOL                                  { Bool ($1, Parsing.symbol_start_pos ()) }
+    | ID                                    { Var ($1, Parsing.symbol_start_pos ()) }
+    | MINUS expression %prec UMINUS         { UMinus ($2, Parsing.symbol_start_pos ()) }
+    | expression PLUS expression            { Bin (Plus, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression MINUS expression           { Bin (Minus, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression TIMES expression           { Bin (Times, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression DIV expression             { Bin (Div, $1, $3, Parsing.symbol_start_pos ()) }
 
-    | expression LT expression              { Bin (Lt, $1, $3) }
-    | expression LE expression              { Bin (Le, $1, $3) }
-    | expression GT expression              { Bin (Gt, $1, $3) }
-    | expression GE expression              { Bin (Ge, $1, $3) }
-    | expression EQ expression              { Bin (Eq, $1, $3) }
-    | expression DIFF expression            { Bin (Diff, $1, $3) }
+    | expression LT expression              { Bin (Lt, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression LE expression              { Bin (Le, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression GT expression              { Bin (Gt, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression GE expression              { Bin (Ge, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression EQ expression              { Bin (Eq, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression DIFF expression            { Bin (Diff, $1, $3, Parsing.symbol_start_pos ()) }
 
-    | ID LPAREN arguments RPAREN            { FunctionCall ($1, $3) }
+    | ID LPAREN arguments RPAREN            { FunctionCall ($1, $3, Parsing.symbol_start_pos ()) }
     | expression LBRACKET expression RBRACKET
-                                            { GetArr ($1, $3) }
+                                            { GetArr ($1, $3, Parsing.symbol_start_pos ()) }
     | NEW ARRAY OF varType LBRACKET expression RBRACKET
-                                            { NewArr($4, $6)}
+                                            { NewArr($4, $6, Parsing.symbol_start_pos ())}
     | READLN LPAREN RPAREN                  { Readln }
 ;
 
@@ -83,11 +83,11 @@ varType:
 ;
 
 condition:
-      expression                            { Expr $1 }
+      expression                            { Expr ($1, Parsing.symbol_start_pos ()) }
     | LPAREN condition RPAREN               { $2 }
-    | NOT condition                         { Not $2 }
-    | condition OR condition                { Or($1, $3) }
-    | condition AND condition               { And($1, $3) }
+    | NOT condition                         { Not ($2, Parsing.symbol_start_pos ()) }
+    | condition OR condition                { Or($1, $3, Parsing.symbol_start_pos ()) }
+    | condition AND condition               { And($1, $3, Parsing.symbol_start_pos ()) }
 ;
 
 arguments:

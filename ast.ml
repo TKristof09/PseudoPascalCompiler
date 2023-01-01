@@ -1,3 +1,8 @@
+exception ScopeError of Lexing.position
+exception TypeError of Lexing.position
+
+
+
 type varType =
     | Integer
     | Boolean
@@ -5,7 +10,6 @@ type varType =
 
 
 type variables = (string list * varType) list
-
 type program = {
     globalVars : variables;
     fun_proc : (string * definition) list;
@@ -19,14 +23,14 @@ and definition = {
   }
 
 and expression =
-  | Int of int
-  | Bool of bool
-  | Bin of binaryOp * expression * expression
-  | Var of string
-  | FunctionCall of string * expression list
-  | GetArr of expression * expression
-  | NewArr of varType * expression
-  | UMinus of expression
+  | Int of int * Lexing.position
+  | Bool of bool * Lexing.position
+  | Bin of binaryOp * expression * expression * Lexing.position
+  | Var of string * Lexing.position
+  | FunctionCall of string * expression list * Lexing.position
+  | GetArr of expression * expression * Lexing.position
+  | NewArr of varType * expression * Lexing.position
+  | UMinus of expression * Lexing.position
   | Readln
 
 and binaryOp =
@@ -42,21 +46,20 @@ and binaryOp =
   | Diff
 
 and condition =
-    | Expr of expression
-    | Not of condition
-    | And of condition * condition
-    | Or of condition * condition
+    | Expr of expression  * Lexing.position
+    | Not of condition * Lexing.position
+    | And of condition * condition * Lexing.position
+    | Or of condition * condition * Lexing.position
 
 and instruction =
-  | SetVar of string * expression
-  | Sequence of instruction list
-  | If of condition * instruction * instruction
-  | While of condition * instruction
-  | ProcCall of string * expression list
-  | Write of expression list
-  | Writeln of expression list
-  | SetArr of expression * expression * expression
-
+  | SetVar of string * expression * Lexing.position
+  | Sequence of instruction list * Lexing.position
+  | If of condition * instruction * instruction * Lexing.position
+  | While of condition * instruction * Lexing.position
+  | ProcCall of string * expression list * Lexing.position
+  | Write of expression list * Lexing.position
+  | Writeln of expression list * Lexing.position
+  | SetArr of expression * expression * expression * Lexing.position
 
 
 let rec print_type t = match t with
@@ -88,33 +91,33 @@ let print_op op = match op with
     | Diff -> Printf.printf " <> "
 
 let rec print_expr e = match e with
-    | Int i -> Printf.printf "Int %i" i
-    | Bool b -> Printf.printf "Bool %b" b
-    | Bin (op, e1, e2) -> print_expr e1; print_op op; print_expr e2
-    | Var s -> Printf.printf "Var %s" s
-    | FunctionCall (s, exprl) -> Printf.printf "FCall %s (" s; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"
-    | GetArr (e1, e2) -> Printf.printf "ArrVar "; print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "]"
-    | NewArr (t, e') -> Printf.printf "new Array of "; print_type t; Printf.printf "["; print_expr e'; Printf.printf "]"
-    | UMinus e' -> Printf.printf "-"; print_expr e'
+    | Int (i,_) -> Printf.printf "Int %i" i
+    | Bool (b,_) -> Printf.printf "Bool %b" b
+    | Bin (op, e1, e2, _) -> print_expr e1; print_op op; print_expr e2
+    | Var (s,_) -> Printf.printf "Var %s" s
+    | FunctionCall (s, exprl, _) -> Printf.printf "FCall %s (" s; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"
+    | GetArr (e1, e2, _) -> Printf.printf "ArrVar "; print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "]"
+    | NewArr (t, e', _) -> Printf.printf "new Array of "; print_type t; Printf.printf "["; print_expr e'; Printf.printf "]"
+    | UMinus (e',_) -> Printf.printf "-"; print_expr e'
     | Readln -> Printf.printf "Readln ()\n"
 
 let rec print_cond c = match c with
-    | Expr e -> print_expr e;
-    | Not c' -> Printf.printf "Not "; print_cond c'
-    | And (c1,c2) -> print_cond c1; Printf.printf " AND "; print_cond c2
-    | Or (c1,c2) -> print_cond c1; Printf.printf " OR "; print_cond c2
+    | Expr (e,_) -> print_expr e;
+    | Not (c',_) -> Printf.printf "Not "; print_cond c'
+    | And (c1,c2, _) -> print_cond c1; Printf.printf " AND "; print_cond c2
+    | Or (c1,c2, _) -> print_cond c1; Printf.printf " OR "; print_cond c2
 
 let rec print_instr i prefix = match i with
-  | SetVar (name, expr) -> Printf.printf "%s" prefix; Printf.printf "Set %s = " name; print_expr expr; Printf.printf "\n"
-  | Sequence l ->  Printf.printf "%s" prefix; Printf.printf "Sequence:\n"; List.iter (fun x -> print_instr x ("\t"^prefix)) l; Printf.printf "\n"
-  | If (c,i1,i2) ->  Printf.printf "%s" prefix; Printf.printf "If "; print_cond c; Printf.printf " then \n"; print_instr i1 ("\t"^prefix); Printf.printf "\nElse\n"; print_instr i2 ("\t"^prefix); Printf.printf "\n"
-  | While (c, i') ->  Printf.printf "%s" prefix;  Printf.printf "While "; print_cond c; Printf.printf " do \n"; print_instr i' ("\t"^prefix); Printf.printf "\n"
-  | ProcCall (name, exprl) ->  Printf.printf "%s" prefix; Printf.printf "Call %s(" name; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"; Printf.printf "\n"
-  | Write (exprl) ->  Printf.printf "%s" prefix; Printf.printf "Write ("; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"; Printf.printf "\n"
+  | SetVar (name, expr, _) -> Printf.printf "%s" prefix; Printf.printf "Set %s = " name; print_expr expr; Printf.printf "\n"
+  | Sequence (l,_) ->  Printf.printf "%s" prefix; Printf.printf "Sequence:\n"; List.iter (fun x -> print_instr x ("\t"^prefix)) l; Printf.printf "\n"
+  | If (c,i1,i2, _) ->  Printf.printf "%s" prefix; Printf.printf "If "; print_cond c; Printf.printf " then \n"; print_instr i1 ("\t"^prefix); Printf.printf "\nElse\n"; print_instr i2 ("\t"^prefix); Printf.printf "\n"
+  | While (c, i', _) ->  Printf.printf "%s" prefix;  Printf.printf "While "; print_cond c; Printf.printf " do \n"; print_instr i' ("\t"^prefix); Printf.printf "\n"
+  | ProcCall (name, exprl, _) ->  Printf.printf "%s" prefix; Printf.printf "Call %s(" name; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"; Printf.printf "\n"
+  | Write (exprl, _) ->  Printf.printf "%s" prefix; Printf.printf "Write ("; List.iter (fun x -> print_expr x; Printf.printf ")") exprl; Printf.printf ")"; Printf.printf "\n"
 ;
-  | Writeln (exprl) ->  Printf.printf "%s" prefix; Printf.printf "Writeln ( ";List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"; Printf.printf "\n"
+  | Writeln (exprl, _) ->  Printf.printf "%s" prefix; Printf.printf "Writeln ( ";List.iter (fun x -> print_expr x; Printf.printf ")") exprl; Printf.printf ")"; Printf.printf "\n"
 ;
-  | SetArr (e1, e2, e3) ->  Printf.printf "%s" prefix; Printf.printf "SetArr: ";print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "] = "; print_expr e3; Printf.printf "\n"
+  | SetArr (e1, e2, e3, _) ->  Printf.printf "%s" prefix; Printf.printf "SetArr: ";print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "] = "; print_expr e3; Printf.printf "\n"
 
 
 let rec print_fun_proc l = match l with
@@ -141,33 +144,33 @@ let print p =
     print_instr p.main ""
 
 
-let print_list l = List.iter (Printf.printf "%s ") l
+
 
 let rec check_scope_expr e current_symbols = match e with
-    | Int _ -> true
-    | Bool _ -> true
-    | Bin (_, e1, e2) -> (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols)
-    | Var s -> List.mem s current_symbols
-    | FunctionCall (s, exprl) -> (List.mem s current_symbols) && (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
-    | GetArr (e1, e2) -> (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols)
-    | NewArr (_, e') -> check_scope_expr e' current_symbols
-    | UMinus e' -> check_scope_expr e' current_symbols
+    | Int (_,pos) -> if true then true else raise (ScopeError (pos))
+    | Bool (_,pos) -> if true then true else raise (ScopeError (pos))
+    | Bin (_, e1, e2, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) then true else raise (ScopeError (pos))
+    | Var (s,pos) -> if List.mem s current_symbols then true else raise (ScopeError (pos))
+    | FunctionCall (s, exprl, pos) -> if (List.mem s current_symbols) && (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl) then true else raise (ScopeError (pos))
+    | GetArr (e1, e2, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) then true else raise (ScopeError (pos))
+    | NewArr (_, e', pos) -> if check_scope_expr e' current_symbols then true else raise (ScopeError (pos))
+    | UMinus (e',pos) -> if check_scope_expr e' current_symbols then true else raise (ScopeError (pos))
     | Readln -> true
 let rec check_scope_cond c current_symbols = match c with
-    | Expr e -> check_scope_expr e current_symbols
-    | Not c' -> check_scope_cond c' current_symbols
-    | And (c1, c2) -> (check_scope_cond c1 current_symbols) && (check_scope_cond c2 current_symbols)
-    | Or (c1, c2) -> (check_scope_cond c1 current_symbols) && (check_scope_cond c2 current_symbols)
+    | Expr (e,pos) -> if check_scope_expr e current_symbols then true else raise (ScopeError (pos))
+    | Not (c',pos) -> if check_scope_cond c' current_symbols then true else raise (ScopeError (pos))
+    | And (c1, c2, pos) -> if (check_scope_cond c1 current_symbols) && (check_scope_cond c2 current_symbols) then true else raise (ScopeError (pos))
+    | Or (c1, c2, pos) -> if (check_scope_cond c1 current_symbols) && (check_scope_cond c2 current_symbols) then true else raise (ScopeError (pos))
 
 let rec check_scope_instr i current_symbols = match i with
-    | SetVar (name, expr) -> (List.mem name current_symbols) && (check_scope_expr expr current_symbols)
-    | Sequence l ->  List.fold_left (fun acc i' -> acc && (check_scope_instr i' current_symbols)) true l
-    | If (c,i1,i2) ->  (check_scope_cond c current_symbols) && (check_scope_instr i1 current_symbols) && (check_scope_instr i2 current_symbols)
-    | While (c, i') ->  (check_scope_cond c current_symbols) && (check_scope_instr i' current_symbols)
-    | ProcCall (name, exprl) -> (List.mem name current_symbols) && (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
-    | Write (exprl) ->(List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
-    | Writeln (exprl) -> (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
-    | SetArr (e1, e2, e3) -> (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) && (check_scope_expr e3 current_symbols)
+    | SetVar (name, expr, pos) -> if (List.mem name current_symbols) && (check_scope_expr expr current_symbols) then true else raise (ScopeError (pos))
+    | Sequence (l,pos) -> if  List.fold_left (fun acc i' -> acc && (check_scope_instr i' current_symbols)) true l then true else raise (ScopeError (pos))
+    | If (c,i1,i2, pos) -> if  (check_scope_cond c current_symbols) && (check_scope_instr i1 current_symbols) && (check_scope_instr i2 current_symbols) then true else raise (ScopeError (pos))
+    | While (c, i', pos) -> if  (check_scope_cond c current_symbols) && (check_scope_instr i' current_symbols) then true else raise (ScopeError (pos))
+    | ProcCall (name, exprl, pos) -> if (List.mem name current_symbols) && (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl) then true else raise (ScopeError (pos))
+    | Write (exprl, _) ->(List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
+    | Writeln (exprl, pos) -> if (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl) then true else raise (ScopeError (pos))
+    | SetArr (e1, e2, e3, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) && (check_scope_expr e3 current_symbols) then true else raise (ScopeError (pos))
 
 
 let rec build_symbol_list vars = match vars with
@@ -183,7 +186,9 @@ let check_scope p =
     let builtins = ["readln"; "writeln"; "write"] in
     let global_vars = builtins @ (build_symbol_list p.globalVars) in
     let globals = List.fold_left (fun acc (n,_) -> n::acc) global_vars p.fun_proc in
-    (check_scope_fun p.fun_proc globals) && (check_scope_instr p.main globals)
+    try
+        (check_scope_fun p.fun_proc globals) && (check_scope_instr p.main globals)
+    with ScopeError pos -> Printf.printf "Scope error in %s at line %i: %i\n" pos.Lexing.pos_fname pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol + 1); false
 
 
 let rec add_to_list v n tail =
@@ -195,64 +200,69 @@ let rec build_vars_type_list args = match args with
     | (names, t)::l -> let n = List.length names in
                         add_to_list t n (build_vars_type_list l)
 
-exception TypeError of string
-let print_map m = Hashtbl.iter (fun x y -> Printf.printf "%s -> " x; print_type y;Printf.printf "\n" ) m;;
 let rec eval_expr_type e globals locals functions = match e with
-    | Int _ -> Integer
-    | Bool _ -> Boolean
-    | Bin (Plus, e1, e2)
-        | Bin (Minus, e1, e2)
-        | Bin (Times, e1, e2)
-        | Bin (Div, e1, e2) -> let t1 = eval_expr_type e1 globals locals functions and
+    | Int (_,_) -> Integer
+    | Bool (_,_) -> Boolean
+    | Bin (Plus, e1, e2, pos)
+        | Bin (Minus, e1, e2, pos)
+        | Bin (Times, e1, e2, pos)
+        | Bin (Div, e1, e2, pos) -> let t1 = eval_expr_type e1 globals locals functions and
                                     t2 = eval_expr_type e2 globals locals functions in
                                 if (t1 = Integer) && (t2 = Integer) then Integer
-                                else raise (TypeError "arith")
-    | Bin(Lt, e1, e2)
-        | Bin(Le, e1, e2)
-        | Bin(Gt, e1, e2)
-        | Bin(Ge, e1, e2)
-        | Bin(Eq, e1, e2)
-        | Bin(Diff, e1, e2) ->let t1 = eval_expr_type e1 globals locals functions and
+                                else raise (TypeError (pos))
+    | Bin (Lt, e1, e2, pos)
+        | Bin (Le, e1, e2, pos)
+        | Bin (Gt, e1, e2, pos)
+        | Bin (Ge, e1, e2, pos)
+        | Bin (Eq, e1, e2, pos)
+        | Bin (Diff, e1, e2, pos) ->let t1 = eval_expr_type e1 globals locals functions and
                                     t2 = eval_expr_type e2 globals locals functions in
                                 if (t1 = Integer) && (t2 = Integer) then Boolean
-                                else raise (TypeError "comp")
-    | Var s -> (try Hashtbl.find locals s with Not_found -> Hashtbl.find globals s)
-    | FunctionCall (name,exprl) -> name; let arg_types = Hashtbl.find functions name in
+                                else raise (TypeError (pos))
+    | Var (s,_) -> (try Hashtbl.find locals s with Not_found -> Hashtbl.find globals s)
+    | FunctionCall (name,exprl, pos) -> let arg_types = Hashtbl.find functions name in
                                     let expr_types = List.map (fun e' -> eval_expr_type e' globals locals functions) exprl in
-                                    if arg_types = expr_types then (try Hashtbl.find globals name with Not_found -> raise (TypeError "proc instead of func"))
-                                    else raise (TypeError (name ^ " args"))
-    | GetArr (e1, e2) -> (match eval_expr_type e1 globals locals functions with
+                                    if arg_types = expr_types then (try Hashtbl.find globals name with Not_found -> raise (TypeError (pos)))
+                                    else raise (TypeError (pos))
+
+    | GetArr (e1, e2, pos) -> (match eval_expr_type e1 globals locals functions with
                             | Array(t) -> if (eval_expr_type e2 globals locals functions) = Integer then t
-                                            else raise (TypeError "getarr index")
-                            | _ -> raise (TypeError "getarr"))
-    | NewArr (t, e') -> if (eval_expr_type e' globals locals functions) = Integer then Array(t)
-                        else raise (TypeError "newarr ind")
-    | UMinus (e') -> if (eval_expr_type e' globals locals functions) = Integer then Integer
-                        else raise (TypeError "uminus")
+                                            else raise (TypeError (pos))
+
+                            | _ -> raise (TypeError (pos)))
+
+    | NewArr (t, e', pos) -> if (eval_expr_type e' globals locals functions) = Integer then Array(t)
+                        else raise (TypeError (pos))
+
+    | UMinus (e', pos) -> if (eval_expr_type e' globals locals functions) = Integer then Integer
+                        else raise (TypeError (pos))
     | Readln -> Integer (*TODO maybe can be bool too?*)
 
 
 let rec check_type_cond c globals locals functions = match c with
-    | Expr e -> (eval_expr_type e globals locals functions) = Boolean
-    | Not c' -> check_type_cond c' globals locals functions
-    | And (c1, c2) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
-    | Or (c1, c2) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
+    | Expr (e,pos) -> if (eval_expr_type e globals locals functions) = Boolean then true else raise (TypeError (pos))
+    | Not (c',_) -> check_type_cond c' globals locals functions
+    | And (c1, c2, _) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
+    | Or (c1, c2, _) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
 
 let rec check_type_instr i globals locals functions = match i with
-    | SetVar (name, expr) -> let t = (try Hashtbl.find locals name with Not_found -> Hashtbl.find globals name) in
-                                (eval_expr_type expr globals locals functions) = t
-    | Sequence l ->  List.fold_left (fun acc i' -> acc && (check_type_instr i' globals locals functions)) true l
-    | If (c,i1,i2) ->  (check_type_cond c globals locals functions) && (check_type_instr i1 globals locals functions) && (check_type_instr i2 globals locals functions)
-    | While (c, i') ->  (check_type_cond c globals locals functions) && (check_type_instr i' globals locals functions)
-    | ProcCall (name, exprl) -> if Hashtbl.mem globals name then false (*if its in the map then its a fct not a procedure*)
+    | SetVar (name, expr, pos) -> let t = (try Hashtbl.find locals name with Not_found -> Hashtbl.find globals name) in
+                                    if (eval_expr_type expr globals locals functions) = t then true
+                                    else raise (TypeError (pos))
+    | Sequence (l,_) ->  List.fold_left (fun acc i' -> acc && (check_type_instr i' globals locals functions)) true l
+    | If (c,i1,i2, _) ->  (check_type_cond c globals locals functions) && (check_type_instr i1 globals locals functions) && (check_type_instr i2 globals locals functions)
+    | While (c, i', _) ->  (check_type_cond c globals locals functions) && (check_type_instr i' globals locals functions)
+    | ProcCall (name, exprl, pos) -> if Hashtbl.mem globals name then raise (TypeError (pos))
+(*if its in the map then its a fct not a procedure*)
                                 else (let arg_types = Hashtbl.find functions name in
                                     let expr_types = List.map (fun e' -> eval_expr_type e' globals locals functions) exprl in
                                     arg_types = expr_types)
-    | Write (_) -> true
-    | Writeln (_) -> true
-    | SetArr (e1, e2, e3) -> (match (eval_expr_type e1 globals locals functions) with
+    | Write (_, _) -> true
+    | Writeln (_, _) -> true
+    | SetArr (e1, e2, e3, pos) -> (match (eval_expr_type e1 globals locals functions) with
                                 | Array(t) -> ((eval_expr_type e2 globals locals functions) = Integer) && ((eval_expr_type e3 globals locals functions) = t)
-                                | _ -> false
+                                | _ -> raise (TypeError (pos))
+
                                 )
 
 let rec build_symbol_map vars map = match vars with
@@ -289,4 +299,4 @@ let check_types p =
     build_functions_return_map p.fun_proc globals;
     try
         (check_type_fun p.fun_proc globals functions) && (check_type_instr p.main globals globals functions)
-    with TypeError s -> false
+    with TypeError pos -> Printf.printf "Type error in %s at line %i: %i\n" pos.Lexing.pos_fname pos.Lexing.pos_lnum (pos.Lexing.pos_cnum - pos.Lexing.pos_bol + 1); false
