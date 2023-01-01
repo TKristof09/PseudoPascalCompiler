@@ -1,0 +1,2358 @@
+   0  $accept : %entry% $end
+
+   1  program : PROGRAM vars fun_proc instruction PERIOD
+
+   2  instruction : ID LPAREN arguments RPAREN
+   3              | ID COLONEQUAL expression
+   4              | expression LBRACKET expression RBRACKET COLONEQUAL expression
+   5              | IF condition THEN instruction ELSE instruction
+   6              | WHILE condition DO instruction
+   7              | BEGIN bloc END
+   8              | REPEAT bloc UNTIL condition
+   9              | WRITE LPAREN arguments RPAREN
+  10              | WRITELN LPAREN arguments RPAREN
+
+  11  expression : LPAREN expression RPAREN
+  12             | INT
+  13             | BOOL
+  14             | ID
+  15             | MINUS expression
+  16             | expression PLUS expression
+  17             | expression MINUS expression
+  18             | expression TIMES expression
+  19             | expression DIV expression
+  20             | expression LT expression
+  21             | expression LE expression
+  22             | expression GT expression
+  23             | expression GE expression
+  24             | expression EQ expression
+  25             | expression DIFF expression
+  26             | ID LPAREN arguments RPAREN
+  27             | expression LBRACKET expression RBRACKET
+  28             | NEW ARRAY OF varType LBRACKET expression RBRACKET
+  29             | READLN LPAREN arguments RPAREN
+
+  30  varType : INTEGER
+  31          | BOOLEAN
+  32          | ARRAY OF varType
+
+  33  condition : expression
+  34            | LPAREN condition RPAREN
+  35            | NOT condition
+  36            | condition OR condition
+  37            | condition AND condition
+
+  38  arguments : expression
+  39            | expression COMMA arguments
+  40            |
+
+  41  vars : VAR varList
+  42       |
+
+  43  varList : var SEMICOLON varList
+  44          | var SEMICOLON
+
+  45  var : idList COLON varType
+
+  46  idList : ID
+  47         | ID COMMA idList
+
+  48  fun_proc : def SEMICOLON fun_proc
+  49           |
+
+  50  def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON vars instruction
+  51      | PROCEDURE ID LPAREN args RPAREN SEMICOLON vars instruction
+
+  52  args : var argsCont
+  53       |
+
+  54  argsCont : SEMICOLON var argsCont
+  55           |
+
+  56  bloc : instruction blocCont
+  57       |
+
+  58  blocCont : SEMICOLON bloc
+  59           |
+
+  60  %entry% : '\001' program
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	.  error
+
+	%entry%  goto 2
+
+
+state 1
+	%entry% : '\001' . program  (60)
+
+	PROGRAM  shift 3
+	.  error
+
+	program  goto 4
+
+
+state 2
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 3
+	program : PROGRAM . vars fun_proc instruction PERIOD  (1)
+	vars : .  (42)
+
+	VAR  shift 5
+	INT  reduce 42
+	ID  reduce 42
+	BOOL  reduce 42
+	MINUS  reduce 42
+	BEGIN  reduce 42
+	LPAREN  reduce 42
+	IF  reduce 42
+	WHILE  reduce 42
+	REPEAT  reduce 42
+	FUNCTION  reduce 42
+	PROCEDURE  reduce 42
+	NEW  reduce 42
+	WRITE  reduce 42
+	WRITELN  reduce 42
+	READLN  reduce 42
+
+	vars  goto 6
+
+
+state 4
+	%entry% : '\001' program .  (60)
+
+	.  reduce 60
+
+
+state 5
+	vars : VAR . varList  (41)
+
+	ID  shift 7
+	.  error
+
+	varList  goto 8
+	var  goto 9
+	idList  goto 10
+
+
+state 6
+	program : PROGRAM vars . fun_proc instruction PERIOD  (1)
+	fun_proc : .  (49)
+
+	FUNCTION  shift 11
+	PROCEDURE  shift 12
+	INT  reduce 49
+	ID  reduce 49
+	BOOL  reduce 49
+	MINUS  reduce 49
+	BEGIN  reduce 49
+	LPAREN  reduce 49
+	IF  reduce 49
+	WHILE  reduce 49
+	REPEAT  reduce 49
+	NEW  reduce 49
+	WRITE  reduce 49
+	WRITELN  reduce 49
+	READLN  reduce 49
+
+	fun_proc  goto 13
+	def  goto 14
+
+
+state 7
+	idList : ID .  (46)
+	idList : ID . COMMA idList  (47)
+
+	COMMA  shift 15
+	COLON  reduce 46
+
+
+state 8
+	vars : VAR varList .  (41)
+
+	.  reduce 41
+
+
+state 9
+	varList : var . SEMICOLON varList  (43)
+	varList : var . SEMICOLON  (44)
+
+	SEMICOLON  shift 16
+	.  error
+
+
+state 10
+	var : idList . COLON varType  (45)
+
+	COLON  shift 17
+	.  error
+
+
+state 11
+	def : FUNCTION . ID LPAREN args RPAREN COLON varType SEMICOLON vars instruction  (50)
+
+	ID  shift 18
+	.  error
+
+
+state 12
+	def : PROCEDURE . ID LPAREN args RPAREN SEMICOLON vars instruction  (51)
+
+	ID  shift 19
+	.  error
+
+
+state 13
+	program : PROGRAM vars fun_proc . instruction PERIOD  (1)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 33
+	expression  goto 34
+
+
+state 14
+	fun_proc : def . SEMICOLON fun_proc  (48)
+
+	SEMICOLON  shift 35
+	.  error
+
+
+state 15
+	idList : ID COMMA . idList  (47)
+
+	ID  shift 7
+	.  error
+
+	idList  goto 36
+
+
+16: shift/reduce conflict (shift 7, reduce 44) on ID
+state 16
+	varList : var SEMICOLON . varList  (43)
+	varList : var SEMICOLON .  (44)
+
+	ID  shift 7
+	INT  reduce 44
+	BOOL  reduce 44
+	MINUS  reduce 44
+	BEGIN  reduce 44
+	LPAREN  reduce 44
+	IF  reduce 44
+	WHILE  reduce 44
+	REPEAT  reduce 44
+	FUNCTION  reduce 44
+	PROCEDURE  reduce 44
+	NEW  reduce 44
+	WRITE  reduce 44
+	WRITELN  reduce 44
+	READLN  reduce 44
+
+	varList  goto 37
+	var  goto 9
+	idList  goto 10
+
+
+state 17
+	var : idList COLON . varType  (45)
+
+	INTEGER  shift 38
+	BOOLEAN  shift 39
+	ARRAY  shift 40
+	.  error
+
+	varType  goto 41
+
+
+state 18
+	def : FUNCTION ID . LPAREN args RPAREN COLON varType SEMICOLON vars instruction  (50)
+
+	LPAREN  shift 42
+	.  error
+
+
+state 19
+	def : PROCEDURE ID . LPAREN args RPAREN SEMICOLON vars instruction  (51)
+
+	LPAREN  shift 43
+	.  error
+
+
+state 20
+	expression : INT .  (12)
+
+	.  reduce 12
+
+
+state 21
+	instruction : ID . LPAREN arguments RPAREN  (2)
+	instruction : ID . COLONEQUAL expression  (3)
+	expression : ID .  (14)
+	expression : ID . LPAREN arguments RPAREN  (26)
+
+	COLONEQUAL  shift 44
+	LPAREN  shift 45
+	PLUS  reduce 14
+	MINUS  reduce 14
+	TIMES  reduce 14
+	DIV  reduce 14
+	LE  reduce 14
+	GE  reduce 14
+	LT  reduce 14
+	GT  reduce 14
+	EQ  reduce 14
+	DIFF  reduce 14
+	LBRACKET  reduce 14
+
+
+state 22
+	expression : BOOL .  (13)
+
+	.  reduce 13
+
+
+state 23
+	expression : MINUS . expression  (15)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 47
+
+
+state 24
+	instruction : BEGIN . bloc END  (7)
+	bloc : .  (57)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	END  reduce 57
+
+	instruction  goto 48
+	expression  goto 34
+	bloc  goto 49
+
+
+state 25
+	expression : LPAREN . expression RPAREN  (11)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 50
+
+
+state 26
+	instruction : IF . condition THEN instruction ELSE instruction  (5)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 54
+
+
+state 27
+	instruction : WHILE . condition DO instruction  (6)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 55
+
+
+state 28
+	instruction : REPEAT . bloc UNTIL condition  (8)
+	bloc : .  (57)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	UNTIL  reduce 57
+
+	instruction  goto 48
+	expression  goto 34
+	bloc  goto 56
+
+
+state 29
+	expression : NEW . ARRAY OF varType LBRACKET expression RBRACKET  (28)
+
+	ARRAY  shift 57
+	.  error
+
+
+state 30
+	instruction : WRITE . LPAREN arguments RPAREN  (9)
+
+	LPAREN  shift 58
+	.  error
+
+
+state 31
+	instruction : WRITELN . LPAREN arguments RPAREN  (10)
+
+	LPAREN  shift 59
+	.  error
+
+
+state 32
+	expression : READLN . LPAREN arguments RPAREN  (29)
+
+	LPAREN  shift 60
+	.  error
+
+
+state 33
+	program : PROGRAM vars fun_proc instruction . PERIOD  (1)
+
+	PERIOD  shift 61
+	.  error
+
+
+state 34
+	instruction : expression . LBRACKET expression RBRACKET COLONEQUAL expression  (4)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 72
+	.  error
+
+
+state 35
+	fun_proc : def SEMICOLON . fun_proc  (48)
+	fun_proc : .  (49)
+
+	FUNCTION  shift 11
+	PROCEDURE  shift 12
+	INT  reduce 49
+	ID  reduce 49
+	BOOL  reduce 49
+	MINUS  reduce 49
+	BEGIN  reduce 49
+	LPAREN  reduce 49
+	IF  reduce 49
+	WHILE  reduce 49
+	REPEAT  reduce 49
+	NEW  reduce 49
+	WRITE  reduce 49
+	WRITELN  reduce 49
+	READLN  reduce 49
+
+	fun_proc  goto 73
+	def  goto 14
+
+
+state 36
+	idList : ID COMMA idList .  (47)
+
+	.  reduce 47
+
+
+state 37
+	varList : var SEMICOLON varList .  (43)
+
+	.  reduce 43
+
+
+state 38
+	varType : INTEGER .  (30)
+
+	.  reduce 30
+
+
+state 39
+	varType : BOOLEAN .  (31)
+
+	.  reduce 31
+
+
+state 40
+	varType : ARRAY . OF varType  (32)
+
+	OF  shift 74
+	.  error
+
+
+state 41
+	var : idList COLON varType .  (45)
+
+	.  reduce 45
+
+
+state 42
+	def : FUNCTION ID LPAREN . args RPAREN COLON varType SEMICOLON vars instruction  (50)
+	args : .  (53)
+
+	ID  shift 7
+	RPAREN  reduce 53
+
+	var  goto 75
+	idList  goto 10
+	args  goto 76
+
+
+state 43
+	def : PROCEDURE ID LPAREN . args RPAREN SEMICOLON vars instruction  (51)
+	args : .  (53)
+
+	ID  shift 7
+	RPAREN  reduce 53
+
+	var  goto 75
+	idList  goto 10
+	args  goto 77
+
+
+state 44
+	instruction : ID COLONEQUAL . expression  (3)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 78
+
+
+state 45
+	instruction : ID LPAREN . arguments RPAREN  (2)
+	expression : ID LPAREN . arguments RPAREN  (26)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 79
+	expression  goto 80
+
+
+state 46
+	expression : ID .  (14)
+	expression : ID . LPAREN arguments RPAREN  (26)
+
+	LPAREN  shift 81
+	PLUS  reduce 14
+	MINUS  reduce 14
+	TIMES  reduce 14
+	DIV  reduce 14
+	LE  reduce 14
+	GE  reduce 14
+	LT  reduce 14
+	GT  reduce 14
+	EQ  reduce 14
+	DIFF  reduce 14
+	AND  reduce 14
+	OR  reduce 14
+	COMMA  reduce 14
+	SEMICOLON  reduce 14
+	PERIOD  reduce 14
+	END  reduce 14
+	RPAREN  reduce 14
+	LBRACKET  reduce 14
+	RBRACKET  reduce 14
+	THEN  reduce 14
+	ELSE  reduce 14
+	DO  reduce 14
+	UNTIL  reduce 14
+
+
+state 47
+	expression : MINUS expression .  (15)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	LBRACKET  shift 82
+	PLUS  reduce 15
+	MINUS  reduce 15
+	TIMES  reduce 15
+	DIV  reduce 15
+	LE  reduce 15
+	GE  reduce 15
+	LT  reduce 15
+	GT  reduce 15
+	EQ  reduce 15
+	DIFF  reduce 15
+	AND  reduce 15
+	OR  reduce 15
+	COMMA  reduce 15
+	SEMICOLON  reduce 15
+	PERIOD  reduce 15
+	END  reduce 15
+	RPAREN  reduce 15
+	RBRACKET  reduce 15
+	THEN  reduce 15
+	ELSE  reduce 15
+	DO  reduce 15
+	UNTIL  reduce 15
+
+
+state 48
+	bloc : instruction . blocCont  (56)
+	blocCont : .  (59)
+
+	SEMICOLON  shift 83
+	END  reduce 59
+	UNTIL  reduce 59
+
+	blocCont  goto 84
+
+
+state 49
+	instruction : BEGIN bloc . END  (7)
+
+	END  shift 85
+	.  error
+
+
+state 50
+	expression : LPAREN expression . RPAREN  (11)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	RPAREN  shift 86
+	LBRACKET  shift 82
+	.  error
+
+
+state 51
+	condition : NOT . condition  (35)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 87
+
+
+state 52
+	expression : LPAREN . expression RPAREN  (11)
+	condition : LPAREN . condition RPAREN  (34)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 88
+	condition  goto 89
+
+
+state 53
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	condition : expression .  (33)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	AND  reduce 33
+	OR  reduce 33
+	SEMICOLON  reduce 33
+	PERIOD  reduce 33
+	END  reduce 33
+	RPAREN  reduce 33
+	THEN  reduce 33
+	ELSE  reduce 33
+	DO  reduce 33
+	UNTIL  reduce 33
+
+
+state 54
+	instruction : IF condition . THEN instruction ELSE instruction  (5)
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+
+	AND  shift 90
+	OR  shift 91
+	THEN  shift 92
+	.  error
+
+
+state 55
+	instruction : WHILE condition . DO instruction  (6)
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+
+	AND  shift 90
+	OR  shift 91
+	DO  shift 93
+	.  error
+
+
+state 56
+	instruction : REPEAT bloc . UNTIL condition  (8)
+
+	UNTIL  shift 94
+	.  error
+
+
+state 57
+	expression : NEW ARRAY . OF varType LBRACKET expression RBRACKET  (28)
+
+	OF  shift 95
+	.  error
+
+
+state 58
+	instruction : WRITE LPAREN . arguments RPAREN  (9)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 96
+	expression  goto 80
+
+
+state 59
+	instruction : WRITELN LPAREN . arguments RPAREN  (10)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 97
+	expression  goto 80
+
+
+state 60
+	expression : READLN LPAREN . arguments RPAREN  (29)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 98
+	expression  goto 80
+
+
+state 61
+	program : PROGRAM vars fun_proc instruction PERIOD .  (1)
+
+	.  reduce 1
+
+
+state 62
+	expression : expression PLUS . expression  (16)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 99
+
+
+state 63
+	expression : expression MINUS . expression  (17)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 100
+
+
+state 64
+	expression : expression TIMES . expression  (18)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 101
+
+
+state 65
+	expression : expression DIV . expression  (19)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 102
+
+
+state 66
+	expression : expression LE . expression  (21)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 103
+
+
+state 67
+	expression : expression GE . expression  (23)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 104
+
+
+state 68
+	expression : expression LT . expression  (20)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 105
+
+
+state 69
+	expression : expression GT . expression  (22)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 106
+
+
+state 70
+	expression : expression EQ . expression  (24)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 107
+
+
+state 71
+	expression : expression DIFF . expression  (25)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 108
+
+
+state 72
+	instruction : expression LBRACKET . expression RBRACKET COLONEQUAL expression  (4)
+	expression : expression LBRACKET . expression RBRACKET  (27)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 109
+
+
+state 73
+	fun_proc : def SEMICOLON fun_proc .  (48)
+
+	.  reduce 48
+
+
+state 74
+	varType : ARRAY OF . varType  (32)
+
+	INTEGER  shift 38
+	BOOLEAN  shift 39
+	ARRAY  shift 40
+	.  error
+
+	varType  goto 110
+
+
+state 75
+	args : var . argsCont  (52)
+	argsCont : .  (55)
+
+	SEMICOLON  shift 111
+	RPAREN  reduce 55
+
+	argsCont  goto 112
+
+
+state 76
+	def : FUNCTION ID LPAREN args . RPAREN COLON varType SEMICOLON vars instruction  (50)
+
+	RPAREN  shift 113
+	.  error
+
+
+state 77
+	def : PROCEDURE ID LPAREN args . RPAREN SEMICOLON vars instruction  (51)
+
+	RPAREN  shift 114
+	.  error
+
+
+state 78
+	instruction : ID COLONEQUAL expression .  (3)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	SEMICOLON  reduce 3
+	PERIOD  reduce 3
+	END  reduce 3
+	ELSE  reduce 3
+	UNTIL  reduce 3
+
+
+state 79
+	instruction : ID LPAREN arguments . RPAREN  (2)
+	expression : ID LPAREN arguments . RPAREN  (26)
+
+	RPAREN  shift 115
+	.  error
+
+
+state 80
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	arguments : expression .  (38)
+	arguments : expression . COMMA arguments  (39)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	COMMA  shift 116
+	LBRACKET  shift 82
+	RPAREN  reduce 38
+
+
+state 81
+	expression : ID LPAREN . arguments RPAREN  (26)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 117
+	expression  goto 80
+
+
+state 82
+	expression : expression LBRACKET . expression RBRACKET  (27)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 118
+
+
+state 83
+	blocCont : SEMICOLON . bloc  (58)
+	bloc : .  (57)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	END  reduce 57
+	UNTIL  reduce 57
+
+	instruction  goto 48
+	expression  goto 34
+	bloc  goto 119
+
+
+state 84
+	bloc : instruction blocCont .  (56)
+
+	.  reduce 56
+
+
+state 85
+	instruction : BEGIN bloc END .  (7)
+
+	.  reduce 7
+
+
+state 86
+	expression : LPAREN expression RPAREN .  (11)
+
+	.  reduce 11
+
+
+state 87
+	condition : NOT condition .  (35)
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+
+	.  reduce 35
+
+
+88: shift/reduce conflict (shift 86, reduce 33) on RPAREN
+state 88
+	expression : LPAREN expression . RPAREN  (11)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	condition : expression .  (33)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	RPAREN  shift 86
+	LBRACKET  shift 82
+	AND  reduce 33
+	OR  reduce 33
+
+
+state 89
+	condition : LPAREN condition . RPAREN  (34)
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+
+	AND  shift 90
+	OR  shift 91
+	RPAREN  shift 120
+	.  error
+
+
+state 90
+	condition : condition AND . condition  (37)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 121
+
+
+state 91
+	condition : condition OR . condition  (36)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 122
+
+
+state 92
+	instruction : IF condition THEN . instruction ELSE instruction  (5)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 123
+	expression  goto 34
+
+
+state 93
+	instruction : WHILE condition DO . instruction  (6)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 124
+	expression  goto 34
+
+
+state 94
+	instruction : REPEAT bloc UNTIL . condition  (8)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	NOT  shift 51
+	LPAREN  shift 52
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 53
+	condition  goto 125
+
+
+state 95
+	expression : NEW ARRAY OF . varType LBRACKET expression RBRACKET  (28)
+
+	INTEGER  shift 38
+	BOOLEAN  shift 39
+	ARRAY  shift 40
+	.  error
+
+	varType  goto 126
+
+
+state 96
+	instruction : WRITE LPAREN arguments . RPAREN  (9)
+
+	RPAREN  shift 127
+	.  error
+
+
+state 97
+	instruction : WRITELN LPAREN arguments . RPAREN  (10)
+
+	RPAREN  shift 128
+	.  error
+
+
+state 98
+	expression : READLN LPAREN arguments . RPAREN  (29)
+
+	RPAREN  shift 129
+	.  error
+
+
+state 99
+	expression : expression . PLUS expression  (16)
+	expression : expression PLUS expression .  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	PLUS  reduce 16
+	MINUS  reduce 16
+	LE  reduce 16
+	GE  reduce 16
+	LT  reduce 16
+	GT  reduce 16
+	EQ  reduce 16
+	DIFF  reduce 16
+	AND  reduce 16
+	OR  reduce 16
+	COMMA  reduce 16
+	SEMICOLON  reduce 16
+	PERIOD  reduce 16
+	END  reduce 16
+	RPAREN  reduce 16
+	RBRACKET  reduce 16
+	THEN  reduce 16
+	ELSE  reduce 16
+	DO  reduce 16
+	UNTIL  reduce 16
+
+
+state 100
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression MINUS expression .  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	PLUS  reduce 17
+	MINUS  reduce 17
+	LE  reduce 17
+	GE  reduce 17
+	LT  reduce 17
+	GT  reduce 17
+	EQ  reduce 17
+	DIFF  reduce 17
+	AND  reduce 17
+	OR  reduce 17
+	COMMA  reduce 17
+	SEMICOLON  reduce 17
+	PERIOD  reduce 17
+	END  reduce 17
+	RPAREN  reduce 17
+	RBRACKET  reduce 17
+	THEN  reduce 17
+	ELSE  reduce 17
+	DO  reduce 17
+	UNTIL  reduce 17
+
+
+state 101
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression TIMES expression .  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	LBRACKET  shift 82
+	PLUS  reduce 18
+	MINUS  reduce 18
+	TIMES  reduce 18
+	DIV  reduce 18
+	LE  reduce 18
+	GE  reduce 18
+	LT  reduce 18
+	GT  reduce 18
+	EQ  reduce 18
+	DIFF  reduce 18
+	AND  reduce 18
+	OR  reduce 18
+	COMMA  reduce 18
+	SEMICOLON  reduce 18
+	PERIOD  reduce 18
+	END  reduce 18
+	RPAREN  reduce 18
+	RBRACKET  reduce 18
+	THEN  reduce 18
+	ELSE  reduce 18
+	DO  reduce 18
+	UNTIL  reduce 18
+
+
+state 102
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression DIV expression .  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	LBRACKET  shift 82
+	PLUS  reduce 19
+	MINUS  reduce 19
+	TIMES  reduce 19
+	DIV  reduce 19
+	LE  reduce 19
+	GE  reduce 19
+	LT  reduce 19
+	GT  reduce 19
+	EQ  reduce 19
+	DIFF  reduce 19
+	AND  reduce 19
+	OR  reduce 19
+	COMMA  reduce 19
+	SEMICOLON  reduce 19
+	PERIOD  reduce 19
+	END  reduce 19
+	RPAREN  reduce 19
+	RBRACKET  reduce 19
+	THEN  reduce 19
+	ELSE  reduce 19
+	DO  reduce 19
+	UNTIL  reduce 19
+
+
+state 103
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression LE expression .  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 21
+	GE  reduce 21
+	LT  reduce 21
+	GT  reduce 21
+	EQ  reduce 21
+	DIFF  reduce 21
+	AND  reduce 21
+	OR  reduce 21
+	COMMA  reduce 21
+	SEMICOLON  reduce 21
+	PERIOD  reduce 21
+	END  reduce 21
+	RPAREN  reduce 21
+	RBRACKET  reduce 21
+	THEN  reduce 21
+	ELSE  reduce 21
+	DO  reduce 21
+	UNTIL  reduce 21
+
+
+state 104
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression GE expression .  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 23
+	GE  reduce 23
+	LT  reduce 23
+	GT  reduce 23
+	EQ  reduce 23
+	DIFF  reduce 23
+	AND  reduce 23
+	OR  reduce 23
+	COMMA  reduce 23
+	SEMICOLON  reduce 23
+	PERIOD  reduce 23
+	END  reduce 23
+	RPAREN  reduce 23
+	RBRACKET  reduce 23
+	THEN  reduce 23
+	ELSE  reduce 23
+	DO  reduce 23
+	UNTIL  reduce 23
+
+
+state 105
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression LT expression .  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 20
+	GE  reduce 20
+	LT  reduce 20
+	GT  reduce 20
+	EQ  reduce 20
+	DIFF  reduce 20
+	AND  reduce 20
+	OR  reduce 20
+	COMMA  reduce 20
+	SEMICOLON  reduce 20
+	PERIOD  reduce 20
+	END  reduce 20
+	RPAREN  reduce 20
+	RBRACKET  reduce 20
+	THEN  reduce 20
+	ELSE  reduce 20
+	DO  reduce 20
+	UNTIL  reduce 20
+
+
+state 106
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression GT expression .  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 22
+	GE  reduce 22
+	LT  reduce 22
+	GT  reduce 22
+	EQ  reduce 22
+	DIFF  reduce 22
+	AND  reduce 22
+	OR  reduce 22
+	COMMA  reduce 22
+	SEMICOLON  reduce 22
+	PERIOD  reduce 22
+	END  reduce 22
+	RPAREN  reduce 22
+	RBRACKET  reduce 22
+	THEN  reduce 22
+	ELSE  reduce 22
+	DO  reduce 22
+	UNTIL  reduce 22
+
+
+state 107
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression EQ expression .  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 24
+	GE  reduce 24
+	LT  reduce 24
+	GT  reduce 24
+	EQ  reduce 24
+	DIFF  reduce 24
+	AND  reduce 24
+	OR  reduce 24
+	COMMA  reduce 24
+	SEMICOLON  reduce 24
+	PERIOD  reduce 24
+	END  reduce 24
+	RPAREN  reduce 24
+	RBRACKET  reduce 24
+	THEN  reduce 24
+	ELSE  reduce 24
+	DO  reduce 24
+	UNTIL  reduce 24
+
+
+state 108
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression DIFF expression .  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LBRACKET  shift 82
+	LE  reduce 25
+	GE  reduce 25
+	LT  reduce 25
+	GT  reduce 25
+	EQ  reduce 25
+	DIFF  reduce 25
+	AND  reduce 25
+	OR  reduce 25
+	COMMA  reduce 25
+	SEMICOLON  reduce 25
+	PERIOD  reduce 25
+	END  reduce 25
+	RPAREN  reduce 25
+	RBRACKET  reduce 25
+	THEN  reduce 25
+	ELSE  reduce 25
+	DO  reduce 25
+	UNTIL  reduce 25
+
+
+state 109
+	instruction : expression LBRACKET expression . RBRACKET COLONEQUAL expression  (4)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	expression : expression LBRACKET expression . RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	RBRACKET  shift 130
+	.  error
+
+
+state 110
+	varType : ARRAY OF varType .  (32)
+
+	.  reduce 32
+
+
+state 111
+	argsCont : SEMICOLON . var argsCont  (54)
+
+	ID  shift 7
+	.  error
+
+	var  goto 131
+	idList  goto 10
+
+
+state 112
+	args : var argsCont .  (52)
+
+	.  reduce 52
+
+
+state 113
+	def : FUNCTION ID LPAREN args RPAREN . COLON varType SEMICOLON vars instruction  (50)
+
+	COLON  shift 132
+	.  error
+
+
+state 114
+	def : PROCEDURE ID LPAREN args RPAREN . SEMICOLON vars instruction  (51)
+
+	SEMICOLON  shift 133
+	.  error
+
+
+state 115
+	instruction : ID LPAREN arguments RPAREN .  (2)
+	expression : ID LPAREN arguments RPAREN .  (26)
+
+	PLUS  reduce 26
+	MINUS  reduce 26
+	TIMES  reduce 26
+	DIV  reduce 26
+	LE  reduce 26
+	GE  reduce 26
+	LT  reduce 26
+	GT  reduce 26
+	EQ  reduce 26
+	DIFF  reduce 26
+	SEMICOLON  reduce 2
+	PERIOD  reduce 2
+	END  reduce 2
+	LBRACKET  reduce 26
+	ELSE  reduce 2
+	UNTIL  reduce 2
+
+
+state 116
+	arguments : expression COMMA . arguments  (39)
+	arguments : .  (40)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	RPAREN  reduce 40
+
+	arguments  goto 134
+	expression  goto 80
+
+
+state 117
+	expression : ID LPAREN arguments . RPAREN  (26)
+
+	RPAREN  shift 135
+	.  error
+
+
+state 118
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	expression : expression LBRACKET expression . RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	RBRACKET  shift 136
+	.  error
+
+
+state 119
+	blocCont : SEMICOLON bloc .  (58)
+
+	.  reduce 58
+
+
+state 120
+	condition : LPAREN condition RPAREN .  (34)
+
+	.  reduce 34
+
+
+state 121
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+	condition : condition AND condition .  (37)
+
+	.  reduce 37
+
+
+state 122
+	condition : condition . OR condition  (36)
+	condition : condition OR condition .  (36)
+	condition : condition . AND condition  (37)
+
+	AND  shift 90
+	OR  reduce 36
+	SEMICOLON  reduce 36
+	PERIOD  reduce 36
+	END  reduce 36
+	RPAREN  reduce 36
+	THEN  reduce 36
+	ELSE  reduce 36
+	DO  reduce 36
+	UNTIL  reduce 36
+
+
+state 123
+	instruction : IF condition THEN instruction . ELSE instruction  (5)
+
+	ELSE  shift 137
+	.  error
+
+
+state 124
+	instruction : WHILE condition DO instruction .  (6)
+
+	.  reduce 6
+
+
+state 125
+	instruction : REPEAT bloc UNTIL condition .  (8)
+	condition : condition . OR condition  (36)
+	condition : condition . AND condition  (37)
+
+	AND  shift 90
+	OR  shift 91
+	SEMICOLON  reduce 8
+	PERIOD  reduce 8
+	END  reduce 8
+	ELSE  reduce 8
+	UNTIL  reduce 8
+
+
+state 126
+	expression : NEW ARRAY OF varType . LBRACKET expression RBRACKET  (28)
+
+	LBRACKET  shift 138
+	.  error
+
+
+state 127
+	instruction : WRITE LPAREN arguments RPAREN .  (9)
+
+	.  reduce 9
+
+
+state 128
+	instruction : WRITELN LPAREN arguments RPAREN .  (10)
+
+	.  reduce 10
+
+
+state 129
+	expression : READLN LPAREN arguments RPAREN .  (29)
+
+	.  reduce 29
+
+
+state 130
+	instruction : expression LBRACKET expression RBRACKET . COLONEQUAL expression  (4)
+	expression : expression LBRACKET expression RBRACKET .  (27)
+
+	COLONEQUAL  shift 139
+	PLUS  reduce 27
+	MINUS  reduce 27
+	TIMES  reduce 27
+	DIV  reduce 27
+	LE  reduce 27
+	GE  reduce 27
+	LT  reduce 27
+	GT  reduce 27
+	EQ  reduce 27
+	DIFF  reduce 27
+	LBRACKET  reduce 27
+
+
+state 131
+	argsCont : SEMICOLON var . argsCont  (54)
+	argsCont : .  (55)
+
+	SEMICOLON  shift 111
+	RPAREN  reduce 55
+
+	argsCont  goto 140
+
+
+state 132
+	def : FUNCTION ID LPAREN args RPAREN COLON . varType SEMICOLON vars instruction  (50)
+
+	INTEGER  shift 38
+	BOOLEAN  shift 39
+	ARRAY  shift 40
+	.  error
+
+	varType  goto 141
+
+
+state 133
+	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON . vars instruction  (51)
+	vars : .  (42)
+
+	VAR  shift 5
+	INT  reduce 42
+	ID  reduce 42
+	BOOL  reduce 42
+	MINUS  reduce 42
+	BEGIN  reduce 42
+	LPAREN  reduce 42
+	IF  reduce 42
+	WHILE  reduce 42
+	REPEAT  reduce 42
+	NEW  reduce 42
+	WRITE  reduce 42
+	WRITELN  reduce 42
+	READLN  reduce 42
+
+	vars  goto 142
+
+
+state 134
+	arguments : expression COMMA arguments .  (39)
+
+	.  reduce 39
+
+
+state 135
+	expression : ID LPAREN arguments RPAREN .  (26)
+
+	.  reduce 26
+
+
+state 136
+	expression : expression LBRACKET expression RBRACKET .  (27)
+
+	.  reduce 27
+
+
+state 137
+	instruction : IF condition THEN instruction ELSE . instruction  (5)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 143
+	expression  goto 34
+
+
+state 138
+	expression : NEW ARRAY OF varType LBRACKET . expression RBRACKET  (28)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 144
+
+
+state 139
+	instruction : expression LBRACKET expression RBRACKET COLONEQUAL . expression  (4)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 145
+
+
+state 140
+	argsCont : SEMICOLON var argsCont .  (54)
+
+	.  reduce 54
+
+
+state 141
+	def : FUNCTION ID LPAREN args RPAREN COLON varType . SEMICOLON vars instruction  (50)
+
+	SEMICOLON  shift 146
+	.  error
+
+
+state 142
+	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON vars . instruction  (51)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 147
+	expression  goto 34
+
+
+state 143
+	instruction : IF condition THEN instruction ELSE instruction .  (5)
+
+	.  reduce 5
+
+
+state 144
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+	expression : NEW ARRAY OF varType LBRACKET expression . RBRACKET  (28)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	RBRACKET  shift 148
+	.  error
+
+
+state 145
+	instruction : expression LBRACKET expression RBRACKET COLONEQUAL expression .  (4)
+	expression : expression . PLUS expression  (16)
+	expression : expression . MINUS expression  (17)
+	expression : expression . TIMES expression  (18)
+	expression : expression . DIV expression  (19)
+	expression : expression . LT expression  (20)
+	expression : expression . LE expression  (21)
+	expression : expression . GT expression  (22)
+	expression : expression . GE expression  (23)
+	expression : expression . EQ expression  (24)
+	expression : expression . DIFF expression  (25)
+	expression : expression . LBRACKET expression RBRACKET  (27)
+
+	PLUS  shift 62
+	MINUS  shift 63
+	TIMES  shift 64
+	DIV  shift 65
+	LE  shift 66
+	GE  shift 67
+	LT  shift 68
+	GT  shift 69
+	EQ  shift 70
+	DIFF  shift 71
+	LBRACKET  shift 82
+	SEMICOLON  reduce 4
+	PERIOD  reduce 4
+	END  reduce 4
+	ELSE  reduce 4
+	UNTIL  reduce 4
+
+
+state 146
+	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON . vars instruction  (50)
+	vars : .  (42)
+
+	VAR  shift 5
+	INT  reduce 42
+	ID  reduce 42
+	BOOL  reduce 42
+	MINUS  reduce 42
+	BEGIN  reduce 42
+	LPAREN  reduce 42
+	IF  reduce 42
+	WHILE  reduce 42
+	REPEAT  reduce 42
+	NEW  reduce 42
+	WRITE  reduce 42
+	WRITELN  reduce 42
+	READLN  reduce 42
+
+	vars  goto 149
+
+
+state 147
+	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON vars instruction .  (51)
+
+	.  reduce 51
+
+
+state 148
+	expression : NEW ARRAY OF varType LBRACKET expression RBRACKET .  (28)
+
+	.  reduce 28
+
+
+state 149
+	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON vars . instruction  (50)
+
+	INT  shift 20
+	ID  shift 21
+	BOOL  shift 22
+	MINUS  shift 23
+	BEGIN  shift 24
+	LPAREN  shift 25
+	IF  shift 26
+	WHILE  shift 27
+	REPEAT  shift 28
+	NEW  shift 29
+	WRITE  shift 30
+	WRITELN  shift 31
+	READLN  shift 32
+	.  error
+
+	instruction  goto 150
+	expression  goto 34
+
+
+state 150
+	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON vars instruction .  (50)
+
+	.  reduce 50
+
+
+State 16 contains 1 shift/reduce conflict.
+State 88 contains 1 shift/reduce conflict.
+
+
+50 terminals, 18 nonterminals
+61 grammar rules, 151 states
