@@ -4,7 +4,7 @@
 
 
 exception Eof
-exception ParsingError
+exception LexError
 
 let keywords = Hashtbl.create 25
 let _ =
@@ -295,7 +295,7 @@ and __ocaml_lex_token_rec lexbuf __ocaml_lex_state =
 
   | 24 ->
 # 82 "lexer.mll"
-                     ( raise ParsingError )
+                     ( raise LexError )
 # 300 "lexer.ml"
 
   | __ocaml_lex_state -> lexbuf.Lexing.refill_buff lexbuf;

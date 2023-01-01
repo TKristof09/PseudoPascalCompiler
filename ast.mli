@@ -27,7 +27,7 @@ and expression =
   | GetArr of expression * expression
   | NewArr of varType * expression
   | UMinus of expression
-  | Readln of expression list
+  | Readln
 
 and binaryOp =
   | Plus
@@ -61,3 +61,5 @@ and instruction =
 val print: program -> unit
 
 val check_scope: program -> bool
+
+val check_types: program -> bool

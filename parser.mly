@@ -73,7 +73,7 @@ expression:
                                             { GetArr ($1, $3) }
     | NEW ARRAY OF varType LBRACKET expression RBRACKET
                                             { NewArr($4, $6)}
-    | READLN LPAREN arguments RPAREN        { Readln ($3) }
+    | READLN LPAREN RPAREN                  { Readln }
 ;
 
 varType:

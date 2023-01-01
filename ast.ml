@@ -27,7 +27,7 @@ and expression =
   | GetArr of expression * expression
   | NewArr of varType * expression
   | UMinus of expression
-  | Readln of expression list
+  | Readln
 
 and binaryOp =
   | Plus
@@ -96,7 +96,7 @@ let rec print_expr e = match e with
     | GetArr (e1, e2) -> Printf.printf "ArrVar "; print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "]"
     | NewArr (t, e') -> Printf.printf "new Array of "; print_type t; Printf.printf "["; print_expr e'; Printf.printf "]"
     | UMinus e' -> Printf.printf "-"; print_expr e'
-    | Readln (exprl) -> Printf.printf "Read ("; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"; Printf.printf "\n"
+    | Readln -> Printf.printf "Readln ()\n"
 
 let rec print_cond c = match c with
     | Expr e -> print_expr e;
@@ -121,6 +121,8 @@ let rec print_fun_proc l = match l with
     | [] -> Printf.printf "\n////////\n"
     | (name, def)::l' ->
             Printf.printf "Function/procedure: %s\n" name;
+            Printf.printf "\tlocals:\n";
+            print_vars def.locals "\t\t";
             Printf.printf "\targs:\n";
             print_vars def.arguments "\t\t";
             Printf.printf "\tresult: "; print_res_type def.result;
@@ -150,7 +152,7 @@ let rec check_scope_expr e current_symbols = match e with
     | GetArr (e1, e2) -> (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols)
     | NewArr (_, e') -> check_scope_expr e' current_symbols
     | UMinus e' -> check_scope_expr e' current_symbols
-    | Readln (exprl) ->(List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl)
+    | Readln -> true
 let rec check_scope_cond c current_symbols = match c with
     | Expr e -> check_scope_expr e current_symbols
     | Not c' -> check_scope_cond c' current_symbols
@@ -175,7 +177,6 @@ let rec check_scope_fun l globals = match l with
     | [] -> true
     | (name, def)::t ->
             let symbols = name::(build_symbol_list def.locals) @ (build_symbol_list def.arguments) @ globals in
-            print_list symbols;
             (check_scope_instr def.body symbols) && (check_scope_fun t (name::globals))
 
 let check_scope p =
@@ -184,3 +185,108 @@ let check_scope p =
     let globals = List.fold_left (fun acc (n,_) -> n::acc) global_vars p.fun_proc in
     (check_scope_fun p.fun_proc globals) && (check_scope_instr p.main globals)
 
+
+let rec add_to_list v n tail =
+    if n = 0 then tail
+    else v::(add_to_list v (n-1) tail)
+
+let rec build_vars_type_list args = match args with
+    | [] -> []
+    | (names, t)::l -> let n = List.length names in
+                        add_to_list t n (build_vars_type_list l)
+
+exception TypeError of string
+let print_map m = Hashtbl.iter (fun x y -> Printf.printf "%s -> " x; print_type y;Printf.printf "\n" ) m;;
+let rec eval_expr_type e globals locals functions = match e with
+    | Int _ -> Integer
+    | Bool _ -> Boolean
+    | Bin (Plus, e1, e2)
+        | Bin (Minus, e1, e2)
+        | Bin (Times, e1, e2)
+        | Bin (Div, e1, e2) -> let t1 = eval_expr_type e1 globals locals functions and
+                                    t2 = eval_expr_type e2 globals locals functions in
+                                if (t1 = Integer) && (t2 = Integer) then Integer
+                                else raise (TypeError "arith")
+    | Bin(Lt, e1, e2)
+        | Bin(Le, e1, e2)
+        | Bin(Gt, e1, e2)
+        | Bin(Ge, e1, e2)
+        | Bin(Eq, e1, e2)
+        | Bin(Diff, e1, e2) ->let t1 = eval_expr_type e1 globals locals functions and
+                                    t2 = eval_expr_type e2 globals locals functions in
+                                if (t1 = Integer) && (t2 = Integer) then Boolean
+                                else raise (TypeError "comp")
+    | Var s -> (try Hashtbl.find locals s with Not_found -> Hashtbl.find globals s)
+    | FunctionCall (name,exprl) -> name; let arg_types = Hashtbl.find functions name in
+                                    let expr_types = List.map (fun e' -> eval_expr_type e' globals locals functions) exprl in
+                                    if arg_types = expr_types then (try Hashtbl.find globals name with Not_found -> raise (TypeError "proc instead of func"))
+                                    else raise (TypeError (name ^ " args"))
+    | GetArr (e1, e2) -> (match eval_expr_type e1 globals locals functions with
+                            | Array(t) -> if (eval_expr_type e2 globals locals functions) = Integer then t
+                                            else raise (TypeError "getarr index")
+                            | _ -> raise (TypeError "getarr"))
+    | NewArr (t, e') -> if (eval_expr_type e' globals locals functions) = Integer then Array(t)
+                        else raise (TypeError "newarr ind")
+    | UMinus (e') -> if (eval_expr_type e' globals locals functions) = Integer then Integer
+                        else raise (TypeError "uminus")
+    | Readln -> Integer (*TODO maybe can be bool too?*)
+
+
+let rec check_type_cond c globals locals functions = match c with
+    | Expr e -> (eval_expr_type e globals locals functions) = Boolean
+    | Not c' -> check_type_cond c' globals locals functions
+    | And (c1, c2) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
+    | Or (c1, c2) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
+
+let rec check_type_instr i globals locals functions = match i with
+    | SetVar (name, expr) -> let t = (try Hashtbl.find locals name with Not_found -> Hashtbl.find globals name) in
+                                (eval_expr_type expr globals locals functions) = t
+    | Sequence l ->  List.fold_left (fun acc i' -> acc && (check_type_instr i' globals locals functions)) true l
+    | If (c,i1,i2) ->  (check_type_cond c globals locals functions) && (check_type_instr i1 globals locals functions) && (check_type_instr i2 globals locals functions)
+    | While (c, i') ->  (check_type_cond c globals locals functions) && (check_type_instr i' globals locals functions)
+    | ProcCall (name, exprl) -> if Hashtbl.mem globals name then false (*if its in the map then its a fct not a procedure*)
+                                else (let arg_types = Hashtbl.find functions name in
+                                    let expr_types = List.map (fun e' -> eval_expr_type e' globals locals functions) exprl in
+                                    arg_types = expr_types)
+    | Write (_) -> true
+    | Writeln (_) -> true
+    | SetArr (e1, e2, e3) -> (match (eval_expr_type e1 globals locals functions) with
+                                | Array(t) -> ((eval_expr_type e2 globals locals functions) = Integer) && ((eval_expr_type e3 globals locals functions) = t)
+                                | _ -> false
+                                )
+
+let rec build_symbol_map vars map = match vars with
+    | [] -> ()
+    | (names,t)::l ->
+            List.iter (function name -> Hashtbl.add map name t) names; build_symbol_map l map
+
+let rec check_type_fun l globals functions = match l with
+    | [] -> true
+    | (_, def)::l' ->
+            let tmp = Hashtbl.create 20 in
+            build_symbol_map def.locals tmp;
+            build_symbol_map def.arguments tmp;
+            (check_type_instr def.body globals tmp functions) && (check_type_fun l' globals functions)
+
+
+let rec build_functions_map l map = match l with
+    | [] -> ()
+    | (name, def)::l' -> Hashtbl.add map name (build_vars_type_list def.arguments); build_functions_map l' map
+
+let rec build_functions_return_map l map = match l with
+    | [] -> ()
+    | (name, def)::l' -> (match def.result with
+                            | None -> ()
+                            | Some t -> Hashtbl.add map name t
+                            );
+                            build_functions_return_map l' map
+
+let check_types p =
+    let functions = Hashtbl.create 20 in
+    build_functions_map p.fun_proc functions;
+    let globals = Hashtbl.create 20 in
+    build_symbol_map p.globalVars globals;
+    build_functions_return_map p.fun_proc globals;
+    try
+        (check_type_fun p.fun_proc globals functions) && (check_type_instr p.main globals globals functions)
+    with TypeError s -> false

@@ -30,7 +30,7 @@
   26             | ID LPAREN arguments RPAREN
   27             | expression LBRACKET expression RBRACKET
   28             | NEW ARRAY OF varType LBRACKET expression RBRACKET
-  29             | READLN LPAREN arguments RPAREN
+  29             | READLN LPAREN RPAREN
 
   30  varType : INTEGER
   31          | BOOLEAN
@@ -465,7 +465,7 @@ state 31
 
 
 state 32
-	expression : READLN . LPAREN arguments RPAREN  (29)
+	expression : READLN . LPAREN RPAREN  (29)
 
 	LPAREN  shift 60
 	.  error
@@ -883,20 +883,10 @@ state 59
 
 
 state 60
-	expression : READLN LPAREN . arguments RPAREN  (29)
-	arguments : .  (40)
+	expression : READLN LPAREN . RPAREN  (29)
 
-	INT  shift 20
-	ID  shift 46
-	BOOL  shift 22
-	MINUS  shift 23
-	LPAREN  shift 25
-	NEW  shift 29
-	READLN  shift 32
-	RPAREN  reduce 40
-
-	arguments  goto 98
-	expression  goto 80
+	RPAREN  shift 98
+	.  error
 
 
 state 61
@@ -1429,10 +1419,9 @@ state 97
 
 
 state 98
-	expression : READLN LPAREN arguments . RPAREN  (29)
+	expression : READLN LPAREN RPAREN .  (29)
 
-	RPAREN  shift 129
-	.  error
+	.  reduce 29
 
 
 state 99
@@ -1851,7 +1840,7 @@ state 109
 	EQ  shift 70
 	DIFF  shift 71
 	LBRACKET  shift 82
-	RBRACKET  shift 130
+	RBRACKET  shift 129
 	.  error
 
 
@@ -1867,7 +1856,7 @@ state 111
 	ID  shift 7
 	.  error
 
-	var  goto 131
+	var  goto 130
 	idList  goto 10
 
 
@@ -1880,14 +1869,14 @@ state 112
 state 113
 	def : FUNCTION ID LPAREN args RPAREN . COLON varType SEMICOLON vars instruction  (50)
 
-	COLON  shift 132
+	COLON  shift 131
 	.  error
 
 
 state 114
 	def : PROCEDURE ID LPAREN args RPAREN . SEMICOLON vars instruction  (51)
 
-	SEMICOLON  shift 133
+	SEMICOLON  shift 132
 	.  error
 
 
@@ -1926,14 +1915,14 @@ state 116
 	READLN  shift 32
 	RPAREN  reduce 40
 
-	arguments  goto 134
+	arguments  goto 133
 	expression  goto 80
 
 
 state 117
 	expression : ID LPAREN arguments . RPAREN  (26)
 
-	RPAREN  shift 135
+	RPAREN  shift 134
 	.  error
 
 
@@ -1962,7 +1951,7 @@ state 118
 	EQ  shift 70
 	DIFF  shift 71
 	LBRACKET  shift 82
-	RBRACKET  shift 136
+	RBRACKET  shift 135
 	.  error
 
 
@@ -2006,7 +1995,7 @@ state 122
 state 123
 	instruction : IF condition THEN instruction . ELSE instruction  (5)
 
-	ELSE  shift 137
+	ELSE  shift 136
 	.  error
 
 
@@ -2033,7 +2022,7 @@ state 125
 state 126
 	expression : NEW ARRAY OF varType . LBRACKET expression RBRACKET  (28)
 
-	LBRACKET  shift 138
+	LBRACKET  shift 137
 	.  error
 
 
@@ -2050,16 +2039,10 @@ state 128
 
 
 state 129
-	expression : READLN LPAREN arguments RPAREN .  (29)
-
-	.  reduce 29
-
-
-state 130
 	instruction : expression LBRACKET expression RBRACKET . COLONEQUAL expression  (4)
 	expression : expression LBRACKET expression RBRACKET .  (27)
 
-	COLONEQUAL  shift 139
+	COLONEQUAL  shift 138
 	PLUS  reduce 27
 	MINUS  reduce 27
 	TIMES  reduce 27
@@ -2073,17 +2056,17 @@ state 130
 	LBRACKET  reduce 27
 
 
-state 131
+state 130
 	argsCont : SEMICOLON var . argsCont  (54)
 	argsCont : .  (55)
 
 	SEMICOLON  shift 111
 	RPAREN  reduce 55
 
-	argsCont  goto 140
+	argsCont  goto 139
 
 
-state 132
+state 131
 	def : FUNCTION ID LPAREN args RPAREN COLON . varType SEMICOLON vars instruction  (50)
 
 	INTEGER  shift 38
@@ -2091,10 +2074,10 @@ state 132
 	ARRAY  shift 40
 	.  error
 
-	varType  goto 141
+	varType  goto 140
 
 
-state 133
+state 132
 	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON . vars instruction  (51)
 	vars : .  (42)
 
@@ -2113,28 +2096,28 @@ state 133
 	WRITELN  reduce 42
 	READLN  reduce 42
 
-	vars  goto 142
+	vars  goto 141
 
 
-state 134
+state 133
 	arguments : expression COMMA arguments .  (39)
 
 	.  reduce 39
 
 
-state 135
+state 134
 	expression : ID LPAREN arguments RPAREN .  (26)
 
 	.  reduce 26
 
 
-state 136
+state 135
 	expression : expression LBRACKET expression RBRACKET .  (27)
 
 	.  reduce 27
 
 
-state 137
+state 136
 	instruction : IF condition THEN instruction ELSE . instruction  (5)
 
 	INT  shift 20
@@ -2152,12 +2135,27 @@ state 137
 	READLN  shift 32
 	.  error
 
-	instruction  goto 143
+	instruction  goto 142
 	expression  goto 34
 
 
-state 138
+state 137
 	expression : NEW ARRAY OF varType LBRACKET . expression RBRACKET  (28)
+
+	INT  shift 20
+	ID  shift 46
+	BOOL  shift 22
+	MINUS  shift 23
+	LPAREN  shift 25
+	NEW  shift 29
+	READLN  shift 32
+	.  error
+
+	expression  goto 143
+
+
+state 138
+	instruction : expression LBRACKET expression RBRACKET COLONEQUAL . expression  (4)
 
 	INT  shift 20
 	ID  shift 46
@@ -2172,34 +2170,19 @@ state 138
 
 
 state 139
-	instruction : expression LBRACKET expression RBRACKET COLONEQUAL . expression  (4)
-
-	INT  shift 20
-	ID  shift 46
-	BOOL  shift 22
-	MINUS  shift 23
-	LPAREN  shift 25
-	NEW  shift 29
-	READLN  shift 32
-	.  error
-
-	expression  goto 145
-
-
-state 140
 	argsCont : SEMICOLON var argsCont .  (54)
 
 	.  reduce 54
 
 
-state 141
+state 140
 	def : FUNCTION ID LPAREN args RPAREN COLON varType . SEMICOLON vars instruction  (50)
 
-	SEMICOLON  shift 146
+	SEMICOLON  shift 145
 	.  error
 
 
-state 142
+state 141
 	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON vars . instruction  (51)
 
 	INT  shift 20
@@ -2217,17 +2200,17 @@ state 142
 	READLN  shift 32
 	.  error
 
-	instruction  goto 147
+	instruction  goto 146
 	expression  goto 34
 
 
-state 143
+state 142
 	instruction : IF condition THEN instruction ELSE instruction .  (5)
 
 	.  reduce 5
 
 
-state 144
+state 143
 	expression : expression . PLUS expression  (16)
 	expression : expression . MINUS expression  (17)
 	expression : expression . TIMES expression  (18)
@@ -2252,11 +2235,11 @@ state 144
 	EQ  shift 70
 	DIFF  shift 71
 	LBRACKET  shift 82
-	RBRACKET  shift 148
+	RBRACKET  shift 147
 	.  error
 
 
-state 145
+state 144
 	instruction : expression LBRACKET expression RBRACKET COLONEQUAL expression .  (4)
 	expression : expression . PLUS expression  (16)
 	expression : expression . MINUS expression  (17)
@@ -2288,7 +2271,7 @@ state 145
 	UNTIL  reduce 4
 
 
-state 146
+state 145
 	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON . vars instruction  (50)
 	vars : .  (42)
 
@@ -2307,22 +2290,22 @@ state 146
 	WRITELN  reduce 42
 	READLN  reduce 42
 
-	vars  goto 149
+	vars  goto 148
 
 
-state 147
+state 146
 	def : PROCEDURE ID LPAREN args RPAREN SEMICOLON vars instruction .  (51)
 
 	.  reduce 51
 
 
-state 148
+state 147
 	expression : NEW ARRAY OF varType LBRACKET expression RBRACKET .  (28)
 
 	.  reduce 28
 
 
-state 149
+state 148
 	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON vars . instruction  (50)
 
 	INT  shift 20
@@ -2340,11 +2323,11 @@ state 149
 	READLN  shift 32
 	.  error
 
-	instruction  goto 150
+	instruction  goto 149
 	expression  goto 34
 
 
-state 150
+state 149
 	def : FUNCTION ID LPAREN args RPAREN COLON varType SEMICOLON vars instruction .  (50)
 
 	.  reduce 50
@@ -2355,4 +2338,4 @@ State 88 contains 1 shift/reduce conflict.
 
 
 50 terminals, 18 nonterminals
-61 grammar rules, 151 states
+61 grammar rules, 150 states

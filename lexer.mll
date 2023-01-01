@@ -3,7 +3,7 @@
 
 
 exception Eof
-exception ParsingError
+exception LexError
 
 let keywords = Hashtbl.create 25
 let _ =
@@ -79,7 +79,7 @@ rule token = parse
     | ']'            { RBRACKET }
     | '.'            { PERIOD }
     | eof            { raise Eof }
-    | _              { raise ParsingError }
+    | _              { raise LexError }
 
 
 

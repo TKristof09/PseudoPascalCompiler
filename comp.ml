@@ -37,32 +37,34 @@ let parse_program error_prefix parseur lexer lexbuf =
            error
            (String.concat ""
               [ error_prefix; string_of_int pos1; "-"; string_of_int pos2;
-                ":\nSyntax error";])
-    | Lexer.ParsingError ->
+                ": Syntax error\n";])
+    | Lexer.LexError ->
          let pos1 = Lexing.lexeme_start lexbuf - orig in
          let pos2 = Lexing.lexeme_end lexbuf - orig in
            error
            (String.concat ""
               [ error_prefix; string_of_int pos1; "-"; string_of_int pos2;
-                ":\nLexical error "; Lexing.lexeme lexbuf])
+                ": Lexical error\n"; Lexing.lexeme lexbuf])
 
 
 let test f =
     let ic = open_in f in
     let lexbuf = Lexing.from_channel ic in
-    let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert (Ast.check_scope p)
+    let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert ((Ast.check_scope p) && (Ast.check_types p))
 
 let test_false f =
     let ic = open_in f in
     let lexbuf = Lexing.from_channel ic in
     try
-        let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert (not (Ast.check_scope p))
+        let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in assert (not ((Ast.check_scope p) && (Ast.check_types p)))
     with Error s -> Printf.printf "%s" s
 
+(*
 let _ =
-    let f = "tests/KO/typeif.p" in
+    let f = "tests/OK/bigtri.p" in
     let ic = open_in f in
     let lexbuf = Lexing.from_channel ic in
     let p = parse_program (f^" : ") Parser.program Lexer.token lexbuf in Ast.print p
+*)
 let _ = List.iter (fun f -> Printf.printf "%s\n" f; test f) (dir_contents "tests/OK")
 let _ = List.iter (fun f -> Printf.printf "%s\n" f; test_false f) (dir_contents "tests/KO")
