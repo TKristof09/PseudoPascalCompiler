@@ -9,7 +9,7 @@ OCAMLC=ocamlc
 OCAMLFLAGS=-w A
 LIBS=
 OBJS=ast.cmo parser.cmo lexer.cmo comp.cmo
-BIN=bin/comp
+BIN=comp
 
 
 

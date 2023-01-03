@@ -56,17 +56,17 @@ expression:
     | BOOL                                  { Bool ($1, Parsing.symbol_start_pos ()) }
     | ID                                    { Var ($1, Parsing.symbol_start_pos ()) }
     | MINUS expression %prec UMINUS         { UMinus ($2, Parsing.symbol_start_pos ()) }
-    | expression PLUS expression            { Bin (Plus, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression MINUS expression           { Bin (Minus, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression TIMES expression           { Bin (Times, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression DIV expression             { Bin (Div, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression PLUS expression            { Bop (Plus, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression MINUS expression           { Bop (Minus, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression TIMES expression           { Bop (Times, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression DIV expression             { Bop (Div, $1, $3, Parsing.symbol_start_pos ()) }
 
-    | expression LT expression              { Bin (Lt, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression LE expression              { Bin (Le, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression GT expression              { Bin (Gt, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression GE expression              { Bin (Ge, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression EQ expression              { Bin (Eq, $1, $3, Parsing.symbol_start_pos ()) }
-    | expression DIFF expression            { Bin (Diff, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression LT expression              { Bop (Lt, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression LE expression              { Bop (Le, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression GT expression              { Bop (Gt, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression GE expression              { Bop (Ge, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression EQ expression              { Bop (Eq, $1, $3, Parsing.symbol_start_pos ()) }
+    | expression DIFF expression            { Bop (Diff, $1, $3, Parsing.symbol_start_pos ()) }
 
     | ID LPAREN arguments RPAREN            { FunctionCall ($1, $3, Parsing.symbol_start_pos ()) }
     | expression LBRACKET expression RBRACKET

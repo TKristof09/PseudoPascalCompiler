@@ -25,7 +25,7 @@ and definition = {
 and expression =
   | Int of int * Lexing.position
   | Bool of bool * Lexing.position
-  | Bin of binaryOp * expression * expression * Lexing.position
+  | Bop of op * expression * expression * Lexing.position
   | Var of string * Lexing.position
   | FunctionCall of string * expression list * Lexing.position
   | GetArr of expression * expression * Lexing.position
@@ -33,7 +33,7 @@ and expression =
   | UMinus of expression * Lexing.position
   | Readln
 
-and binaryOp =
+and op =
   | Plus
   | Minus
   | Times
@@ -93,7 +93,7 @@ let print_op op = match op with
 let rec print_expr e = match e with
     | Int (i,_) -> Printf.printf "Int %i" i
     | Bool (b,_) -> Printf.printf "Bool %b" b
-    | Bin (op, e1, e2, _) -> print_expr e1; print_op op; print_expr e2
+    | Bop (op, e1, e2, _) -> print_expr e1; print_op op; print_expr e2
     | Var (s,_) -> Printf.printf "Var %s" s
     | FunctionCall (s, exprl, _) -> Printf.printf "FCall %s (" s; List.iter (fun x -> print_expr x; Printf.printf ",") exprl; Printf.printf ")"
     | GetArr (e1, e2, _) -> Printf.printf "ArrVar "; print_expr e1; Printf.printf "["; print_expr e2; Printf.printf "]"
@@ -149,7 +149,7 @@ let print p =
 let rec check_scope_expr e current_symbols = match e with
     | Int (_,pos) -> if true then true else raise (ScopeError (pos))
     | Bool (_,pos) -> if true then true else raise (ScopeError (pos))
-    | Bin (_, e1, e2, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) then true else raise (ScopeError (pos))
+    | Bop (_, e1, e2, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) then true else raise (ScopeError (pos))
     | Var (s,pos) -> if List.mem s current_symbols then true else raise (ScopeError (pos))
     | FunctionCall (s, exprl, pos) -> if (List.mem s current_symbols) && (List.fold_left (fun acc e -> acc && (check_scope_expr e current_symbols)) true exprl) then true else raise (ScopeError (pos))
     | GetArr (e1, e2, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) then true else raise (ScopeError (pos))
@@ -173,9 +173,10 @@ let rec check_scope_instr i current_symbols = match i with
     | SetArr (e1, e2, e3, pos) -> if (check_scope_expr e1 current_symbols) && (check_scope_expr e2 current_symbols) && (check_scope_expr e3 current_symbols) then true else raise (ScopeError (pos))
 
 
+(*Create a list of symbol names from the variables list which is (names, type) list*)
 let rec build_symbol_list vars = match vars with
     | [] -> []
-    | (names,_)::t -> names @ (build_symbol_list t) (* probably not many variables so complexity is fine for now *)
+    | (names,_)::t -> names @ (build_symbol_list t) (* probably not many variables so complexity of @ is fine for now *)
 let rec check_scope_fun l globals = match l with
     | [] -> true
     | (name, def)::t ->
@@ -195,6 +196,7 @@ let rec add_to_list v n tail =
     if n = 0 then tail
     else v::(add_to_list v (n-1) tail)
 
+(*Create a list corresponding to the types of arguments of a function ()*)
 let rec build_vars_type_list args = match args with
     | [] -> []
     | (names, t)::l -> let n = List.length names in
@@ -203,19 +205,19 @@ let rec build_vars_type_list args = match args with
 let rec eval_expr_type e globals locals functions = match e with
     | Int (_,_) -> Integer
     | Bool (_,_) -> Boolean
-    | Bin (Plus, e1, e2, pos)
-        | Bin (Minus, e1, e2, pos)
-        | Bin (Times, e1, e2, pos)
-        | Bin (Div, e1, e2, pos) -> let t1 = eval_expr_type e1 globals locals functions and
+    | Bop (Plus, e1, e2, pos)
+        | Bop (Minus, e1, e2, pos)
+        | Bop (Times, e1, e2, pos)
+        | Bop (Div, e1, e2, pos) -> let t1 = eval_expr_type e1 globals locals functions and
                                     t2 = eval_expr_type e2 globals locals functions in
                                 if (t1 = Integer) && (t2 = Integer) then Integer
                                 else raise (TypeError (pos))
-    | Bin (Lt, e1, e2, pos)
-        | Bin (Le, e1, e2, pos)
-        | Bin (Gt, e1, e2, pos)
-        | Bin (Ge, e1, e2, pos)
-        | Bin (Eq, e1, e2, pos)
-        | Bin (Diff, e1, e2, pos) ->let t1 = eval_expr_type e1 globals locals functions and
+    | Bop (Lt, e1, e2, pos)
+        | Bop (Le, e1, e2, pos)
+        | Bop (Gt, e1, e2, pos)
+        | Bop (Ge, e1, e2, pos)
+        | Bop (Eq, e1, e2, pos)
+        | Bop (Diff, e1, e2, pos) ->let t1 = eval_expr_type e1 globals locals functions and
                                     t2 = eval_expr_type e2 globals locals functions in
                                 if (t1 = Integer) && (t2 = Integer) then Boolean
                                 else raise (TypeError (pos))
@@ -246,7 +248,7 @@ let rec check_type_cond c globals locals functions = match c with
     | Or (c1, c2, _) -> (check_type_cond c1 globals locals functions) && (check_type_cond c2 globals locals functions)
 
 let rec check_type_instr i globals locals functions = match i with
-    | SetVar (name, expr, pos) -> let t = (try Hashtbl.find locals name with Not_found -> Hashtbl.find globals name) in
+    | SetVar (name, expr, pos) -> let t = (try Hashtbl.find locals name with Not_found -> Hashtbl.find globals name) in (*Check locals first because if there is a variable with same name we want to use the local variable*)
                                     if (eval_expr_type expr globals locals functions) = t then true
                                     else raise (TypeError (pos))
     | Sequence (l,_) ->  List.fold_left (fun acc i' -> acc && (check_type_instr i' globals locals functions)) true l
@@ -264,7 +266,7 @@ let rec check_type_instr i globals locals functions = match i with
                                 | _ -> raise (TypeError (pos))
 
                                 )
-
+(*Create a map storing name -> type for each variable*)
 let rec build_symbol_map vars map = match vars with
     | [] -> ()
     | (names,t)::l ->
@@ -278,11 +280,12 @@ let rec check_type_fun l globals functions = match l with
             build_symbol_map def.arguments tmp;
             (check_type_instr def.body globals tmp functions) && (check_type_fun l' globals functions)
 
-
+(*Create a map storing name -> arguments types list for each function*)
 let rec build_functions_map l map = match l with
     | [] -> ()
     | (name, def)::l' -> Hashtbl.add map name (build_vars_type_list def.arguments); build_functions_map l' map
 
+(*Create a map storing name -> return value type for each function (procedures arent added to this map)*)
 let rec build_functions_return_map l map = match l with
     | [] -> ()
     | (name, def)::l' -> (match def.result with

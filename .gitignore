@@ -2,5 +2,10 @@
 *.cmi
 *.output
 
-bin/
+parser.mli
+parser.ml
+lexer.mli
+lexer.ml
+
+comp
 
